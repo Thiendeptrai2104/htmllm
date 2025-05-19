@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Flappy Bird Đơn Giản</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background-color: #70c5ce;
+    }
+    canvas {
+      display: block;
+      margin: auto;
+      background: #70c5ce;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="400" height="600"></canvas>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // Chim
+    let bird = {
+      x: 80,
+      y: 200,
+      width: 30,
+      height: 30,
+      gravity: 0.6,
+      lift: -10,
+      velocity: 0
+    };
+
+    // Ống
+    let pipes = [];
+    let pipeWidth = 50;
+    let pipeGap = 120;
+    let frame = 0;
+    let score = 0;
+    let gameOver = false;
+
+    function drawBird() {
+      ctx.fillStyle = "yellow";
+      ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
+    }
+
+    function drawPipe(pipe) {
+      ctx.fillStyle = "green";
+      ctx.fillRect(pipe.x, 0, pipeWidth, pipe.top);
+      ctx.fillRect(pipe.x, pipe.top + pipeGap, pipeWidth, canvas.height - pipe.top - pipeGap);
+    }
+
+    function resetGame() {
+      bird.y = 200;
+      bird.velocity = 0;
+      pipes = [];
+      frame = 0;
+      score = 0;
+      gameOver = false;
+    }
+
+    function drawScore() {
+      ctx.fillStyle = "white";
+      ctx.font = "24px Arial";
+      ctx.fillText("Điểm: " + score, 10, 30);
+    }
+
+    function update() {
+      if (gameOver) return;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      bird.velocity += bird.gravity;
+      bird.y += bird.velocity;
+
+      if (frame % 90 === 0) {
+        let top = Math.floor(Math.random() * 200) + 50;
+        pipes.push({ x: canvas.width, top: top });
+      }
+
+      for (let i = 0; i < pipes.length; i++) {
+        let pipe = pipes[i];
+        pipe.x -= 2;
+
+        drawPipe(pipe);
+
+        // Va chạm
+        if (
+          bird.x < pipe.x + pipeWidth &&
+          bird.x + bird.width > pipe.x &&
+          (bird.y < pipe.top || bird.y + bird.height > pipe.top + pipeGap)
+        ) {
+          gameOver = true;
+          alert("Game Over! Điểm của bạn: " + score);
+          resetGame();
+        }
+
+        // Tính điểm
+        if (pipe.x + pipeWidth === bird.x) {
+          score++;
+        }
+      }
+
+      // Chim chạm đất hoặc trần
+      if (bird.y + bird.height > canvas.height || bird.y < 0) {
+        gameOver = true;
+        alert("Game Over! Điểm của bạn: " + score);
+        resetGame();
+      }
+
+      drawBird();
+      drawScore();
+
+      frame++;
+      requestAnimationFrame(update);
+    }
+
+    function jump() {
+      bird.velocity = bird.lift;
+    }
+
+    // Điều khiển
+    document.addEventListener("keydown", (e) => {
+      if (e.code === "Space") {
+        jump();
+      }
+    });
+
+    canvas.addEventListener("click", () => {
+      jump();
+    });
+
+    update(); // Bắt đầu game
+  </script>
+</body>
+</html>
